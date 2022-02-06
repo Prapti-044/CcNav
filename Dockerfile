@@ -17,14 +17,9 @@ RUN echo "var ENV = { isContainer: true };" >> /home/ccnavuser/CcNav/static/js/E
 WORKDIR /home/ccnavuser/CcNav/optparser/optparser
 RUN make -f Makefile.container
 
-# create sample a.out executable for testing purposes.
-WORKDIR /home/ccnavuser/CcNav/misc/sample_inputs/a0
-RUN gcc -g hello.c -o /home/ccnavuser/a3.out
-
 WORKDIR /home/ccnavuser/CcNav
 RUN pip3 install -r requirements.txt
 ENV FLASK_APP=app2.py
-ENV FLASK_RUN_HOST=0.0.0.0
 EXPOSE 5000
 
-ENTRYPOINT [ "/usr/bin/python3", "-m", "flask", "run"]
+ENTRYPOINT [ "/usr/bin/python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]

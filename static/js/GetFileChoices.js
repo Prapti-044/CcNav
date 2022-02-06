@@ -347,21 +347,35 @@ OV.GetFileChoices = function() {
         return Common.get_url() + "/lorenz/lora/lora.cgi/jsonp?" + comm + "&callback=?";
     };
 
+
+        
+
     //  GET button pressed.
     var callOptParser_ = function() {
+        let input = $('#enter_exec .mysourcefile').first().prop('files')[0];        
+        let data = new FormData();
+        data.append('file', input);
+        
+        fetch('http://localhost:5000/uploadandbuild', {
+            method: 'POST',
+            body: data
+        }).then(r => r.json())
+        .then(response => {
+            let executable = '/home/ccnavuser/CcNav/' + response['binary'];
+            console.log(response);
 
-        var executable = $('#enter_exec .exe_filename').val();
-        //var comm22 = "command=/usr/gapps/spot/dev_spot.py getData /usr/gapps/spot/datasets/lulesh_gen/1000 ";
+            Common.spinner("Open call.  getting key.");
 
-        Common.spinner("Open call.  getting key.");
+            if( window.ENV.isContainer ) {
 
-        if( window.ENV.isContainer ) {
+                OV.ContainerSetup.load( executable );
+            } else {
 
-            OV.ContainerSetup.load( executable );
-        } else {
-
-            $.getJSON(command_("open", executable), after_);
-        }
+                $.getJSON(command_("open", executable), after_);
+            }
+            
+            return response;
+        });
     };
 
 
