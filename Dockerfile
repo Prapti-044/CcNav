@@ -19,7 +19,7 @@ RUN make -f Makefile.container
 
 WORKDIR /home/ccnavuser/CcNav
 RUN pip3 install -r requirements.txt
-ENV FLASK_APP=app2.py
+ENV FLASK_APP=app.py
 EXPOSE 5000
 
 ENTRYPOINT [ "/usr/bin/python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
