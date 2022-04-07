@@ -1,14 +1,28 @@
-from flask import Flask
-from flask import request
+from flask import Flask, render_template, request
 import subprocess
+from pathlib import Path
 
 app = Flask(__name__, template_folder='.')
 
+@app.route('/')
+def hello():
+    return render_template("index.html")
+
+
+@app.route('/get_file')
+def get_file():
+    # get the source for this filename.
+    file_path = request.args.get('see_sourcecode')
+    contents = Path(file_path).read_text()
+    return contents
+
+
+
 @app.route('/optvis_request')
 def optvis_request():
+    command = request.args.get('command').split(' ') # /g/g0/pascal/inputs/1/a.out'
+    out = subprocess.check_output( command )
+    return out
 
-    command = request.args.get('command');
-    command = command.split(' ') # /g/g0/pascal/inputs/1/a.out'
-    time = subprocess.call( command )
-
-    return 'It is' + str(time)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port='5000', debug=True)
