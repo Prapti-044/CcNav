@@ -8,12 +8,31 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
   var assemblyArray = model.get('assemblyArray');
+  const hidables = model.get("jsonData")["functions"].map(d => d.hidables).filter(d => d.length !== 0).flat();
+  let finalData = [];
+  for(let i = 0; i<assemblyArray.length; i++) {
+    const assembly = assemblyArray[i];
+    let hidable = hidables.filter(hiddable => hiddable.start === assembly.id);
+    let hidableAllLines = hidables.filter(hiddable => hiddable.start <= assembly.id && hiddable.end >= assembly.id);
+    if(hidable.length !== 0) {
+      finalData.push({
+        "type": "button",
+        "lines": hidable
+      });
+    }
+    assembly.type = "line";
+    assembly.hidden = hidableAllLines.length !== 0;
+    finalData.push(assembly);
+  }
+  console.log(finalData);
+
   // var list_registers = model.get('list_registers');
 
   var _observers = makeSignaller();
   var prevFnName = "";
 
   var _highlightEvent = function(d,i) {
+    if(d.type !== "line") return;
     _observers.notify({
       type: signalType.highlight,
       dataType: dataTypes.assemblyInstr,
@@ -24,6 +43,7 @@ var makeDisassemblyView = function(model, viewId, divId){
   };  
 
   var _fireFocusEvent = function(d,i) {
+    if(d.type !== "line") return;
     _observers.notify({
       type: signalType.focus,
       dataType: dataTypes.assemblyInstr,
@@ -34,6 +54,7 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
   var _fireFocusOutEvent = function(d,i) {
+    if(d.type !== "line") return;
     _observers.notify({
       type:signalType.focusOut,
       dataType: dataTypes.assemblyInstr,
@@ -43,6 +64,7 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
   var _clickEvent = function(d,i){
+    if(d.type !== "line") return;
     _observers.notify({
       type: signalType.click,
       dataType: dataTypes.assemblyInstr,
@@ -52,10 +74,11 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
   var _jump_spanly = function( the_cl, d ) {
+    if(d.type !== "line") return;
 
     var start = "";
     var end = "";
-    var span = "<span class='jump_spanly" + the_cl + "'>0x" + the_cl + ": " + d.code + '</span>';
+    var span = `<span class='jump_spanly${the_cl}'>0x${the_cl}: ${d.code}</span>`;
 
     if( d.startBlock ) {
 
@@ -73,6 +96,7 @@ var makeDisassemblyView = function(model, viewId, divId){
 
 
   var _mouseupEvent = function(d, i, selectionObj){
+    if(d.type !== "line") return;
     _observers.notify({
       type: signalType.mouseup,
       dataType: dataTypes.assemblyInstr,
@@ -93,14 +117,24 @@ var makeDisassemblyView = function(model, viewId, divId){
   	  var lines = d3.select("#" + viewId)
 		// .html(null)  // clear the element
 	    .selectAll("p")
-	    .data(assemblyArray);
+	    .data(finalData);
   	  
-	   lines.enter().append("p")
+	   lines.enter().append("p").attr("id", d => d.id).classed("hidden", d => d.hidden)
 			.html(function(d, i){
 
-			  var the_cl = d.id.toString(16);
+        if(d.type === "button") {
+          let ret = ""
+          for(let j = 0; j<d.lines.length; j++) {
+            ret += `<button class="disassembly_hide_btn" data-lines="${d.lines[j].start}:${d.lines[j].end}" onclick="btn_hidelines(this)">${d.lines[j].name}</button>`;
+          }
+          return ret;
+        }
+        else {
+          var the_cl = d.id.toString(16);
+          const jmp_span = _jump_spanly( the_cl, d );
+          return jmp_span;
+        }
 
-			  return _jump_spanly( the_cl, d );
 			})
       .classed("highlight", function(d) {return d.highlight;})
       .classed("selected", function(d) {return d.selected;})
@@ -217,6 +251,7 @@ var makeDisassemblyView = function(model, viewId, divId){
     // lines.text(function(d){return "0x" + d.id.toString(16) + ": " + d.code;});
 
     lines.each(function(d){
+      if(d.type !== "line") return;
 
       var codeStr = d.code;
       var seen = {};
@@ -279,6 +314,7 @@ var makeDisassemblyView = function(model, viewId, divId){
 
     // Perform the rendering at once
     lines.html(function(d){
+      if(d.type !== "line") return;
 
       return _jump_spanly( d.id.toString(16), d );
     });
@@ -296,7 +332,7 @@ var makeDisassemblyView = function(model, viewId, divId){
     // Replace the register names with the source code names
     // _replaceRegNames(lines, nonEmptyRegs);
 
-    _replaceVarNames(lines, args);
+    // _replaceVarNames(lines, args);
 
     var found_highlight = false;
 
@@ -333,3 +369,16 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
 };
+
+const btn_hidelines = (btn) => {
+  const lines = btn.getAttribute('data-lines').split(":").map(d => parseInt(d));
+  for(let i = lines[0]; i <= lines[1]; i++) {
+    const lineNo = i.toString();
+    const el = document.getElementById(lineNo)
+    if (el.style.display === "none") {
+      el.style.display = "block";
+    } else {
+      el.style.display = "none";
+    }
+  }
+}

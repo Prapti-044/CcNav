@@ -557,3 +557,12 @@ p.selected{
 .strikethrough {
   text-decoration: line-through;
 }
+
+.disassembly_hide_btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background-color: pink;
+  padding: 10;
+  font-size: large;
+}
