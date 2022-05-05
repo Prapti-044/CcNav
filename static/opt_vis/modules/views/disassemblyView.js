@@ -119,7 +119,7 @@ var makeDisassemblyView = function(model, viewId, divId){
 	    .selectAll("p")
 	    .data(finalData);
   	  
-	   lines.enter().append("p").attr("id", d => d.id).classed("hidden", d => d.hidden)
+	   lines.enter().append("p").attr("id", d => d.id).classed("hidden", d => d.hidden).style("background-color", d => d.hidden?"white":"white")
 			.html(function(d, i){
 
         if(d.type === "button") {

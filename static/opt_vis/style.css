@@ -562,7 +562,7 @@ p.selected{
   width: 100%;
   text-align: left;
   border: none;
-  background-color: pink;
+  background-color: white;
   padding: 10;
   font-size: large;
 }
