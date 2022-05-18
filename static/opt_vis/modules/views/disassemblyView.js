@@ -125,7 +125,7 @@ var makeDisassemblyView = function(model, viewId, divId){
         if(d.type === "button") {
           let ret = ""
           for(let j = 0; j<d.lines.length; j++) {
-            ret += `<button class="disassembly_hide_btn" data-lines="${d.lines[j].start}:${d.lines[j].end}" onclick="btn_hidelines(this)">${d.lines[j].name}</button>`;
+            ret += `<button class="disassembly_hide_btn" data-lines="${d.lines[j].start}:${d.lines[j].end}" onclick="btn_hidelines(this)"> -> ${d.lines[j].name}</button>`;
           }
           return ret;
         }
@@ -374,11 +374,35 @@ const btn_hidelines = (btn) => {
   const lines = btn.getAttribute('data-lines').split(":").map(d => parseInt(d));
   for(let i = lines[0]; i <= lines[1]; i++) {
     const lineNo = i.toString();
-    const el = document.getElementById(lineNo)
-    if (el.style.display === "none") {
-      el.style.display = "block";
+    const el = document.getElementById(lineNo);
+    const eld3 = d3.select(el);
+
+    if (eld3.style('display') === "none") {
+
+      eld3.style('background-color', 'white')
+        .style('display', 'block')
+        .style('opacity', 1)
+        .transition().duration(1000)
+          .style('background-color', '#FFFDD0')
+          .each("end", () => {
+            eld3.transition().duration(1000).style('background-color', 'white');
+          });
+
+
+      // eld3
+      // .style('opacity', 0)
+      // .style('display','block')
+      // .transition().duration(1000)
+      //   .style("opacity", 1);
     } else {
-      el.style.display = "none";
+      eld3
+      .style('display','block')
+      .style('opacity', 1)
+      .transition().duration(1000)
+        .style("opacity", 0)
+        .each("end", () => {
+          eld3.style('display', 'none');
+        })
     }
   }
 }
