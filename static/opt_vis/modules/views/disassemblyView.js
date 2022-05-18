@@ -8,6 +8,9 @@ var makeDisassemblyView = function(model, viewId, divId){
   };
 
   var assemblyArray = model.get('assemblyArray');
+
+  const allVars = model.get("jsonData")["functions"].map(f => f.vars).filter(d => d.length !== 0).flat();
+
   const hidables = model.get("jsonData")["functions"].map(d => d.hidables).filter(d => d.length !== 0).flat();
   let finalData = [];
   for(let i = 0; i<assemblyArray.length; i++) {
@@ -24,7 +27,6 @@ var makeDisassemblyView = function(model, viewId, divId){
     assembly.hidden = hidableAllLines.length !== 0;
     finalData.push(assembly);
   }
-  console.log(finalData);
 
   // var list_registers = model.get('list_registers');
 
@@ -78,12 +80,27 @@ var makeDisassemblyView = function(model, viewId, divId){
 
     var start = "";
     var end = "";
+
+    allVars.forEach(variable => {
+      let found = false;
+      variable.locations.forEach(location => {
+        if(d.id >= parseInt(location.start, 16) && d.id <= parseInt(location.end, 16) && d.code.includes(location.location)) {
+          d.code = d.code.replace(location.location, "VAR("+variable.name+")");
+          found = true;
+          return;
+        }
+      });
+      if(found) {
+        return;
+      }
+    });    
+
     var span = `<span class='jump_spanly${the_cl}'>0x${the_cl}: ${d.code}</span>`;
 
     if( d.startBlock ) {
 
       start = "<div class='starting_block_label' " +
-          "starting_block_label='" + d.blockId + "'>" + d.blockId + '</div>' +
+          "starting_block_label='" + d.blockId + "'>" + d.blockId + " (" + d.fnName + ")" + '</div>' +
           '<div class="begin"></div>';
     }
 
@@ -305,7 +322,6 @@ var makeDisassemblyView = function(model, viewId, divId){
       var repl = strike_span + new_html;
 
       if( currLoc && codeStr.indexOf(currLoc.location) > -1) {
-        console.log('found it');
         codeStr = codeStr.replace( currLoc.location, repl );
       }
 
