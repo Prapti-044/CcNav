@@ -11,7 +11,7 @@ var makeDisassemblyView = function(model, viewId, divId){
 
   const allVars = model.get("jsonData")["functions"].map(f => f.vars).filter(d => d.length !== 0).flat();
 
-  const hidables = model.get("jsonData")["functions"].map(d => d.hidables).filter(d => d.length !== 0).flat();
+  const hidables = model.get("jsonData")["functions"].map(d => d.hidables).filter(d => d && d.length !== 0).flat();
   let finalData = [];
   for(let i = 0; i<assemblyArray.length; i++) {
     const assembly = assemblyArray[i];
